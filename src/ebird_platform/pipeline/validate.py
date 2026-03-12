@@ -9,7 +9,6 @@ def main() -> None:
         paths.data_dir,
         paths.analitica_dir,
         paths.dimensao_dir,
-        paths.ouro_dir,
     ]
 
     print(f"Project root: {paths.project_root}")

@@ -6,4 +6,4 @@ __pycache__/
 *.pyd
 .env
 .DS_Store
-published/data/
+*.crc
