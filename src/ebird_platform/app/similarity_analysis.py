@@ -19,12 +19,12 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
     ].copy()
 
     if df_cidade_counts_all.empty:
-        st.warning(f"NÃ£o hÃ¡ cidades com pelo menos {min_registros_cidade_sim} registros no cubo.")
+        st.warning(f"Não há cidades com pelo menos {min_registros_cidade_sim} registros no cubo.")
         return
 
     df_cidade_counts_all["label"] = (
         df_cidade_counts_all["county"].astype(str)
-        + " â€” "
+        + " — "
         + df_cidade_counts_all["stateProvince"].astype(str)
         + " ("
         + df_cidade_counts_all["countryCode"].astype(str)
@@ -32,7 +32,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
     )
 
     cidade_focal_label = st.selectbox(
-        "Cidade focal (Cidade â€” Estado/ProvÃ­ncia)",
+        "Cidade focal (Cidade — Estado/Província)",
         options=df_cidade_counts_all["label"].sort_values().tolist(),
         key="sim_cidade_focal",
     )
@@ -44,7 +44,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
 
     df_cubo = cubo_total[cubo_total["countryCode"] == country_sim].copy()
     if df_cubo.empty:
-        st.warning("NÃ£o hÃ¡ dados do cubo cidade Ã— espÃ©cie para o paÃ­s da cidade focal.")
+        st.warning("Não há dados do cubo cidade × espécie para o país da cidade focal.")
         return
 
     df_cidade_counts = df_cidade_counts_all[df_cidade_counts_all["countryCode"] == country_sim].copy()
@@ -65,12 +65,12 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
         fill_value=0,
     )
     if pivot.empty:
-        st.warning("NÃ£o foi possÃ­vel construir a matriz cidade Ã— espÃ©cie.")
+        st.warning("Não foi possível construir a matriz cidade × espécie.")
         return
 
     city_id_focal = f"{estado_focal}||{cidade_focal}"
     if city_id_focal not in pivot.index:
-        st.warning("Cidade focal nÃ£o estÃ¡ na matriz (pode nÃ£o alcanÃ§ar o limiar de registros).")
+        st.warning("Cidade focal não está na matriz (pode não alcançar o limiar de registros).")
         return
 
     counts = pivot.values.astype(float)
@@ -124,7 +124,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
     ].copy()
     df_sim = df_sim.sort_values("JS_sim_norm", ascending=False)
 
-    st.markdown(f"**Cidade focal:** {cidade_focal} â€” {estado_focal} ({country_sim})")
+    st.markdown(f"**Cidade focal:** {cidade_focal} — {estado_focal} ({country_sim})")
 
     cols_tabela = ["stateProvince", "county", "n_registros", "JS_sim_norm", "Jaccard_sim"]
     cols_existentes = [c for c in cols_tabela if c in df_sim.columns]
@@ -137,22 +137,22 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
             df_tab[c] = df_tab[c].astype(float).round(4)
 
     rotulos_pt = {
-        "stateProvince": "Estado/ProvÃ­ncia",
+        "stateProvince": "Estado/Província",
         "county": "Cidade",
         "n_registros": "Total de registros",
-        "JS_sim_norm": "Similaridade (Jensenâ€“Shannon)",
+        "JS_sim_norm": "Similaridade (Jensen–Shannon)",
         "Jaccard_sim": "Similaridade (Jaccard)",
     }
     st.dataframe(df_tab.rename(columns=rotulos_pt), use_container_width=True, hide_index=True)
 
-    st.subheader("Top (selecionÃ¡vel) â€” cidades mais similares")
+    st.subheader("Top (selecionável) — cidades mais similares")
     if df_sim.empty:
-        st.warning("NÃ£o hÃ¡ resultados de similaridade para exibir.")
+        st.warning("Não há resultados de similaridade para exibir.")
     else:
         max_top = int(min(50, len(df_sim)))
         top_x = st.slider("Top", min_value=5, max_value=max_top, value=min(20, max_top), step=1, key="sim_topx")
         df_top = df_sim.head(top_x).copy()
-        df_top["cidade_label"] = df_top["county"].astype(str) + " â€” " + df_top["stateProvince"].astype(str)
+        df_top["cidade_label"] = df_top["county"].astype(str) + " — " + df_top["stateProvince"].astype(str)
 
         cidade_comp_label = st.selectbox(
             "Escolha uma cidade do Top para visualizar os diagramas",
@@ -166,13 +166,13 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
         city_id_comp = f"{estado_comp}||{cidade_comp}"
 
         if city_id_comp not in pivot.index:
-            st.warning("Cidade escolhida nÃ£o estÃ¡ na matriz cidadeÃ—espÃ©cie (pivot).")
+            st.warning("Cidade escolhida não está na matriz cidade×espécie (pivot).")
         else:
             q = probs[pivot.index.get_loc(city_id_comp)]
             jac = jaccard_similarity(p_focal, q)
             st.markdown(
-                f"**Cidade focal:** {cidade_focal} â€” {estado_focal} ({country_sim})  \n"
-                f"**Cidade comparada:** {cidade_comp} â€” {estado_comp} ({country_sim})"
+                f"**Cidade focal:** {cidade_focal} — {estado_focal} ({country_sim})  \n"
+                f"**Cidade comparada:** {cidade_comp} — {estado_comp} ({country_sim})"
             )
 
             def venn_svg_similarity(score, label_text="Similaridade", left_title="Focal", right_title="Comparada", left_city="", right_city=""):
@@ -193,7 +193,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
 
                 def short(s, n=44):
                     s = str(s) if s is not None else ""
-                    return (s[: n - 1] + "â€¦") if len(s) > n else s
+                    return (s[: n - 1] + "…") if len(s) > n else s
 
                 left_city_s = short(left_city, 44)
                 right_city_s = short(right_city, 44)
@@ -216,9 +216,9 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
 
             st.subheader("Jaccard")
             st.caption(
-                "O **Jaccard** mede semelhanÃ§a **apenas pela presenÃ§a/ausÃªncia** de espÃ©cies: "
-                "Ã© a razÃ£o entre espÃ©cies em comum e o total de espÃ©cies observadas no conjunto das duas cidades "
-                "(nÃ£o usa as quantidades de registros)."
+                "O **Jaccard** mede semelhança **apenas pela presença/ausência** de espécies: "
+                "é a razão entre espécies em comum e o total de espécies observadas no conjunto das duas cidades "
+                "(não usa as quantidades de registros)."
             )
             components.html(
                 venn_svg_similarity(
@@ -226,35 +226,35 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                     label_text="Jaccard",
                     left_title="Focal",
                     right_title="Comparada",
-                    left_city=f"{cidade_focal} â€” {estado_focal} ({country_sim})",
-                    right_city=f"{cidade_comp} â€” {estado_comp} ({country_sim})",
+                    left_city=f"{cidade_focal} — {estado_focal} ({country_sim})",
+                    right_city=f"{cidade_comp} — {estado_comp} ({country_sim})",
                 ),
                 height=290,
             )
 
-            st.subheader("DivergÃªncia Jensenâ€“Shannon")
+            st.subheader("Divergência Jensen–Shannon")
             st.caption(
-                "A **divergÃªncia Jensenâ€“Shannon** compara as cidades como **distribuiÃ§Ãµes de probabilidade**: "
-                "cada espÃ©cie recebe a **proporÃ§Ã£o** de registros dentro da cidade. "
-                "Quanto mais parecidas as distribuiÃ§Ãµes, maior a similaridade (aqui: **1 âˆ’ JS(bits)**)."
+                "A **divergência Jensen–Shannon** compara as cidades como **distribuições de probabilidade**: "
+                "cada espécie recebe a **proporção** de registros dentro da cidade. "
+                "Quanto mais parecidas as distribuições, maior a similaridade (aqui: **1 − JS(bits)**)."
             )
 
             js_nats = jensen_shannon_nats(p_focal, q)
             js_bits = js_nats / np.log(2.0)
             js_sim = 1.0 - js_bits
-            st.metric("Similaridade (Jensenâ€“Shannon)", f"{js_sim:.4f}")
+            st.metric("Similaridade (Jensen–Shannon)", f"{js_sim:.4f}")
 
             df_prob = pd.DataFrame({"Especie": pivot.columns.astype(str), "p_focal": p_focal, "p_comp": q})
             df_prob = df_prob[(df_prob["p_focal"] > 0) | (df_prob["p_comp"] > 0)].copy()
             if df_prob.empty:
-                st.warning("NÃ£o hÃ¡ espÃ©cies com probabilidade positiva para comparar.")
+                st.warning("Não há espécies com probabilidade positiva para comparar.")
             else:
-                focal_label = f"{cidade_focal} â€” {estado_focal} ({country_sim})"
-                comp_label = f"{cidade_comp} â€” {estado_comp} ({country_sim})"
+                focal_label = f"{cidade_focal} — {estado_focal} ({country_sim})"
+                comp_label = f"{cidade_comp} — {estado_comp} ({country_sim})"
 
-                st.markdown("**1) EspÃ©cie a espÃ©cie (escala log)**")
+                st.markdown("**1) Espécie a espécie (escala log)**")
                 st.caption(
-                    "Cada ponto Ã© uma espÃ©cie. Se as duas cidades tÃªm proporÃ§Ãµes parecidas por espÃ©cie, "
+                    "Cada ponto é uma espécie. Se as duas cidades têm proporções parecidas por espécie, "
                     "os pontos ficam perto da diagonal. Desvios grandes reduzem a similaridade JS."
                 )
 
@@ -272,18 +272,18 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                     alt.Chart(df_diag)
                     .mark_line(strokeDash=[6, 6])
                     .encode(
-                        x=alt.X("x:Q", title=f"log10(p) â€” Focal ({focal_label})", scale=alt.Scale(domain=[dom_min, dom_max], nice=False)),
-                        y=alt.Y("y:Q", title=f"log10(p) â€” Comparada ({comp_label})", scale=alt.Scale(domain=[dom_min, dom_max], nice=False)),
+                        x=alt.X("x:Q", title=f"log10(p) — Focal ({focal_label})", scale=alt.Scale(domain=[dom_min, dom_max], nice=False)),
+                        y=alt.Y("y:Q", title=f"log10(p) — Comparada ({comp_label})", scale=alt.Scale(domain=[dom_min, dom_max], nice=False)),
                     )
                 )
                 pts = (
                     alt.Chart(df_scatter)
                     .mark_circle(size=40, opacity=0.45)
                     .encode(
-                        x=alt.X("log_p_focal:Q", title=f"log10(p) â€” Focal ({focal_label})"),
-                        y=alt.Y("log_p_comp:Q", title=f"log10(p) â€” Comparada ({comp_label})"),
+                        x=alt.X("log_p_focal:Q", title=f"log10(p) — Focal ({focal_label})"),
+                        y=alt.Y("log_p_comp:Q", title=f"log10(p) — Comparada ({comp_label})"),
                         tooltip=[
-                            alt.Tooltip("Especie:N", title="EspÃ©cie"),
+                            alt.Tooltip("Especie:N", title="Espécie"),
                             alt.Tooltip("p_focal:Q", title="p focal", format=".6f"),
                             alt.Tooltip("p_comp:Q", title="p comparada", format=".6f"),
                         ],
@@ -291,13 +291,13 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                 )
                 st.altair_chart(diag + pts, use_container_width=True)
 
-                st.markdown("**2) Top espÃ©cies que mais carregam probabilidade**")
+                st.markdown("**2) Top espécies que mais carregam probabilidade**")
                 st.caption(
-                    "Mostra as espÃ©cies com maior peso (p) nas duas cidades. "
-                    "Se o peso estÃ¡ concentrado em espÃ©cies diferentes, a Similaridade JS cai."
+                    "Mostra as espécies com maior peso (p) nas duas cidades. "
+                    "Se o peso está concentrado em espécies diferentes, a Similaridade JS cai."
                 )
 
-                k = st.slider("Top espÃ©cies (K)", 10, 50, 20, 5, key="js_topk_species")
+                k = st.slider("Top espécies (K)", 10, 50, 20, 5, key="js_topk_species")
                 df_top = df_prob.copy()
                 df_top["peso"] = df_top["p_focal"] + df_top["p_comp"]
                 df_top = df_top.sort_values("peso", ascending=False).head(int(k)).copy()
@@ -328,16 +328,16 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                     alt.Chart(df_plot)
                     .mark_bar(opacity=0.85)
                     .encode(
-                        y=alt.Y("Especie:N", sort=ordem, title="EspÃ©cie"),
+                        y=alt.Y("Especie:N", sort=ordem, title="Espécie"),
                         x=alt.X(
                             "p_signed:Q",
-                            title="ProporÃ§Ã£o de registros (p) â€” Focal Ã  esquerda | Comparada Ã  direita",
+                            title="Proporção de registros (p) — Focal à esquerda | Comparada à direita",
                             axis=alt.Axis(format=".4f"),
                         ),
                         color=alt.Color("Cidade:N", title=""),
                         tooltip=[
                             alt.Tooltip("Cidade:N", title="Cidade"),
-                            alt.Tooltip("Especie:N", title="EspÃ©cie"),
+                            alt.Tooltip("Especie:N", title="Espécie"),
                             alt.Tooltip("p_abs:Q", title="p", format=".6f"),
                         ],
                     )
@@ -345,14 +345,14 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                 st.altair_chart(zero_rule + bars, use_container_width=True)
 
                 mostrar_kde = st.checkbox(
-                    "Mostrar curva de densidade (extra â€” menos interpretÃ¡vel para JS)",
+                    "Mostrar curva de densidade (extra — menos interpretável para JS)",
                     value=False,
                     key="js_show_kde_extra",
                 )
                 if mostrar_kde:
                     st.caption(
-                        "Esta curva mostra a distribuiÃ§Ã£o dos valores de p. "
-                        "Ã‰ Ãºtil para ver concentraÃ§Ã£o perto de zero, mas nÃ£o explica JS tÃ£o bem quanto os grÃ¡ficos acima."
+                        "Esta curva mostra a distribuição dos valores de p. "
+                        "É útil para ver concentração perto de zero, mas não explica JS tão bem quanto os gráficos acima."
                     )
 
                     df_long = df_prob.melt(
@@ -377,7 +377,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                         .encode(
                             x=alt.X(
                                 "p:Q",
-                                title="ProporÃ§Ã£o de registros por espÃ©cie",
+                                title="Proporção de registros por espécie",
                                 axis=alt.Axis(format=".3f"),
                                 scale=alt.Scale(domain=[0, pmax], nice=False),
                             ),
@@ -393,26 +393,26 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                     )
                     st.altair_chart(dens_area + dens_line, use_container_width=True)
 
-    with st.expander("Notas metodolÃ³gicas (fÃ³rmulas e interpretaÃ§Ã£o)", expanded=True):
+    with st.expander("Notas metodológicas (fórmulas e interpretação)", expanded=True):
         st.markdown(
-            "- **Similaridade (Jensen-Shannon)** varia de 0 a 1 (1 = mais parecido) e Ã© calculada a partir da divergÃªncia de Jensenâ€“Shannon.\n"
-            "- **Similaridade (Jaccard)** varia de 0 a 1 e considera apenas presenÃ§a/ausÃªncia de espÃ©cies.\n"
-            f"- A comparaÃ§Ã£o Ã© feita entre a cidade focal e cada outra cidade usando a distribuiÃ§Ã£o de registros por espÃ©cie, apenas sÃ£o incluÃ­das cidades com **pelo menos {min_registros_cidade_sim} registros**.\n"
-            "- Nas fÃ³rmulas abaixo, o Ã­ndice **i** percorre as espÃ©cies."
+            "- **Similaridade (Jensen-Shannon)** varia de 0 a 1 (1 = mais parecido) e é calculada a partir da divergência de Jensen–Shannon.\n"
+            "- **Similaridade (Jaccard)** varia de 0 a 1 e considera apenas presença/ausência de espécies.\n"
+            f"- A comparação é feita entre a cidade focal e cada outra cidade usando a distribuição de registros por espécie, apenas são incluídas cidades com **pelo menos {min_registros_cidade_sim} registros**.\n"
+            "- Nas fórmulas abaixo, o índice **i** percorre as espécies."
         )
-        st.markdown("**DistribuiÃ§Ã£o por espÃ©cie (por cidade):**")
+        st.markdown("**Distribuição por espécie (por cidade):**")
         st.latex(r"p_i = \frac{n_i}{\sum_j n_j}")
-        st.markdown("**DivergÃªncia de Jensenâ€“Shannon (JS):**")
+        st.markdown("**Divergência de Jensen–Shannon (JS):**")
         st.latex(r"m = \frac{1}{2}(p+q)")
         st.latex(r"JS_{\text{nats}}(p,q)=\frac{1}{2}KL(p\,||\,m)+\frac{1}{2}KL(q\,||\,m)")
         st.latex(r"KL(p\,||\,m)=\sum_i p_i \ln\left(\frac{p_i}{m_i}\right)")
         st.markdown("**JS em bits e a Similaridade (JS) mostrada na tabela:**")
         st.latex(r"JS_{\text{bits}} = \frac{JS_{\text{nats}}}{\ln(2)}")
         st.latex(r"\text{Similaridade(JS)} = 1 - JS_{\text{bits}}")
-        st.markdown("**Similaridade de Jaccard (presenÃ§a/ausÃªncia):**")
+        st.markdown("**Similaridade de Jaccard (presença/ausência):**")
         st.latex(r"A=\{i:\,p_i>0\},\quad B=\{i:\,q_i>0\}")
         st.latex(r"Jaccard(A,B)=\frac{|A\cap B|}{|A\cup B|}")
         st.caption(
-            "ObservaÃ§Ã£o: JS usa a distribuiÃ§Ã£o (proporÃ§Ãµes de registros). "
-            "Jaccard ignora abundÃ¢ncias e considera apenas presenÃ§a/ausÃªncia."
+            "Observação: JS usa a distribuição (proporções de registros). "
+            "Jaccard ignora abundâncias e considera apenas presença/ausência."
         )

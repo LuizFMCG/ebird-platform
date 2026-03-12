@@ -277,16 +277,16 @@ def construir_gdf_estado_para_mapa(pais_iso3: str) -> gpd.GeoDataFrame:
 
 
 def desenhar_mapa_conesul() -> None:
-    st.subheader("Mapa territorial â€” riqueza de espÃ©cies por Estado/MunicÃ­pio")
-    st.caption("Selecione paÃ­ses e a escala territorial para visualizar a riqueza de espÃ©cies com base em registros do eBird.")
+    st.subheader("Mapa territorial — riqueza de espécies por Estado/Município")
+    st.caption("Selecione países e a escala territorial para visualizar a riqueza de espécies com base em registros do eBird.")
 
     paises_sulamerica = ["ARG", "BOL", "BRA", "CHL", "COL", "ECU", "GUY", "GUF", "PRY", "PER", "SUR", "URY", "VEN"]
     pais_label_map = {
         "ARG": "Argentina",
-        "BOL": "BolÃ­via",
+        "BOL": "Bolívia",
         "BRA": "Brasil",
         "CHL": "Chile",
-        "COL": "ColÃ´mbia",
+        "COL": "Colômbia",
         "ECU": "Equador",
         "GUY": "Guiana",
         "GUF": "Guiana Francesa",
@@ -303,57 +303,57 @@ def desenhar_mapa_conesul() -> None:
     paises_permitidos = [p for p in paises_sulamerica if p in paises_disponiveis]
 
     if not paises_permitidos:
-        st.error("NÃ£o encontrei paÃ­ses da AmÃ©rica do Sul nas dimensÃµes territoriais (coluna pais_iso3).")
+        st.error("Não encontrei países da América do Sul nas dimensões territoriais (coluna pais_iso3).")
         return
 
     paises_sel = st.multiselect(
-        "PaÃ­ses",
+        "Países",
         options=paises_permitidos,
         default=(["BRA"] if "BRA" in paises_permitidos else [paises_permitidos[0]]),
         format_func=lambda x: pais_label_map.get(x, x),
     )
-    nivel = st.radio("Escala territorial", options=["Estados", "MunicÃ­pios"], horizontal=True)
+    nivel = st.radio("Escala territorial", options=["Estados", "Municípios"], horizontal=True)
 
     paises_est_set = set(dim_est["pais_iso3"].dropna().unique())
     paises_mun_set = set(dim_mun["pais_iso3"].dropna().unique())
 
-    if nivel == "MunicÃ­pios":
+    if nivel == "Municípios":
         missing = [p for p in paises_sel if p not in paises_mun_set]
         if missing:
-            st.warning("Sem geometria municipal para: " + ", ".join(missing) + ". Eles serÃ£o ignorados no mapa de municÃ­pios.")
+            st.warning("Sem geometria municipal para: " + ", ".join(missing) + ". Eles serão ignorados no mapa de municípios.")
         paises_sel = [p for p in paises_sel if p in paises_mun_set]
     else:
         missing = [p for p in paises_sel if p not in paises_est_set]
         if missing:
-            st.warning("Sem geometria estadual para: " + ", ".join(missing) + ". Eles serÃ£o ignorados no mapa de estados.")
+            st.warning("Sem geometria estadual para: " + ", ".join(missing) + ". Eles serão ignorados no mapa de estados.")
         paises_sel = [p for p in paises_sel if p in paises_est_set]
 
     if not paises_sel:
-        st.warning("Selecione ao menos um paÃ­s.")
+        st.warning("Selecione ao menos um país.")
         return
 
-    if nivel == "MunicÃ­pios":
+    if nivel == "Municípios":
         gdfs = [construir_gdf_municipio_para_mapa(p) for p in paises_sel]
         gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs="EPSG:4326")
         metric_col = "n_especies_distintas"
         nome_col = "nome_municipio"
         id_col = "id_municipio"
-        tooltip_aliases = ["MunicÃ­pio:", "Riqueza (nÂº de espÃ©cies):"]
+        tooltip_aliases = ["Município:", "Riqueza (nº de espécies):"]
     else:
         gdfs = [construir_gdf_estado_para_mapa(p) for p in paises_sel]
         gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs="EPSG:4326")
         metric_col = "n_especies_distintas_max_municipio"
         nome_col = "nome_estado"
         id_col = "id_estado"
-        tooltip_aliases = ["Estado:", "Riqueza mÃ¡xima (municÃ­pios):"]
+        tooltip_aliases = ["Estado:", "Riqueza máxima (municípios):"]
 
     if gdf.empty:
-        st.warning("NÃ£o hÃ¡ dados para o paÃ­s/escala selecionados.")
+        st.warning("Não há dados para o país/escala selecionados.")
         return
 
     if metric_col not in gdf.columns:
-        st.error(f"Coluna de mÃ©trica '{metric_col}' nÃ£o encontrada no GeoDataFrame.")
-        st.write("Colunas disponÃ­veis:", list(gdf.columns))
+        st.error(f"Coluna de métrica '{metric_col}' não encontrada no GeoDataFrame.")
+        st.write("Colunas disponíveis:", list(gdf.columns))
         return
 
     try:
