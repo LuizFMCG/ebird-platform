@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import mimetypes
 from pathlib import Path
 
 import streamlit as st
@@ -26,25 +27,37 @@ def set_bg_image(image_path: Path, overlay_alpha: float = 0.70) -> None:
         return
 
     b64 = base64.b64encode(image_path.read_bytes()).decode()
+    mime_type, _ = mimetypes.guess_type(image_path.name)
+    mime_type = mime_type or "image/jpeg"
     st.markdown(
         f"""
         <style>
-        .stApp {{
-            background-image:
-              linear-gradient(rgba(0,0,0,{overlay_alpha}), rgba(0,0,0,{overlay_alpha})),
-              url("data:image/jpeg;base64,{b64}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+        html, body {{
+            background: transparent !important;
+            min-height: 100%;
         }}
 
-        [data-testid="stAppViewContainer"] {{
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] > .main,
+        [data-testid="stMain"],
+        section.main {{
             background-image:
               linear-gradient(rgba(0,0,0,{overlay_alpha}), rgba(0,0,0,{overlay_alpha})),
-              url("data:image/jpeg;base64,{b64}");
+              url("data:{mime_type};base64,{b64}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-color: transparent !important;
+        }}
+
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] > .main,
+        [data-testid="stMain"],
+        section.main {{
+            min-height: 100vh;
         }}
 
         [data-testid="stHeader"] {{
@@ -57,6 +70,14 @@ def set_bg_image(image_path: Path, overlay_alpha: float = 0.70) -> None:
 
         [data-testid="stSidebar"] > div:first-child {{
             background: rgba(0,0,0,0.55);
+        }}
+
+        .block-container,
+        [data-testid="stMainBlockContainer"] {{
+            max-width: none !important;
+            width: min(96rem, calc(100vw - 3rem)) !important;
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
         }}
         </style>
         """,

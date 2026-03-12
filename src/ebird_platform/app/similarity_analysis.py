@@ -1,10 +1,24 @@
 from __future__ import annotations
 
+import base64
+
 import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
+
+
+def _render_svg_inline(svg_markup: str) -> None:
+    svg_b64 = base64.b64encode(svg_markup.encode("utf-8")).decode("ascii")
+    st.markdown(
+        (
+            '<div style="display:flex; justify-content:center; width:100%;">'
+            f'<img src="data:image/svg+xml;base64,{svg_b64}" '
+            'style="max-width:100%; height:auto; display:block;" alt="Diagrama de similaridade"/>'
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
@@ -220,7 +234,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                 "é a razão entre espécies em comum e o total de espécies observadas no conjunto das duas cidades "
                 "(não usa as quantidades de registros)."
             )
-            components.html(
+            _render_svg_inline(
                 venn_svg_similarity(
                     jac,
                     label_text="Jaccard",
@@ -228,8 +242,7 @@ def render_similarity_analysis(cubo_total: pd.DataFrame) -> None:
                     right_title="Comparada",
                     left_city=f"{cidade_focal} — {estado_focal} ({country_sim})",
                     right_city=f"{cidade_comp} — {estado_comp} ({country_sim})",
-                ),
-                height=290,
+                )
             )
 
             st.subheader("Divergência Jensen–Shannon")

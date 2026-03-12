@@ -36,3 +36,4 @@ pytest
 
 - Streamlit Community Cloud deployment notes: `docs/deploy_streamlit_cloud.md`
 - AWS bootstrap commands: `docs/aws_bootstrap.md`
+- Current-state technical analysis and next-phase recommendation: `docs/current_state_analysis.md`
