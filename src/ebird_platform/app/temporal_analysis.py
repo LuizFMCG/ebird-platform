@@ -16,7 +16,7 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
     )
     cidades["label"] = (
         cidades["county"].astype(str)
-        + " — "
+        + " - "
         + cidades["stateProvince"].astype(str)
         + " ("
         + cidades["countryCode"].astype(str)
@@ -24,7 +24,7 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
     )
 
     cidade_label = st.selectbox(
-        "Selecionar cidade (Cidade — Estado/Província)",
+        "Selecionar cidade (Cidade - Estado/Provincia)",
         options=cidades["label"].tolist(),
     )
     row_sel = cidades[cidades["label"] == cidade_label].iloc[0]
@@ -39,7 +39,7 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
     ].copy()
 
     if df_temp.empty:
-        st.warning("Não há série temporal para a cidade selecionada.")
+        st.warning("Nao ha serie temporal para a cidade selecionada.")
         return
 
     total_registros_total = df_temp["total_registros"].sum() if "total_registros" in df_temp.columns else np.nan
@@ -53,13 +53,13 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
             st.metric("Total de registros", f"{int(total_registros_total):,}".replace(",", "."))
     with c2:
         if not np.isnan(richness_max):
-            st.metric("Riqueza máxima", f"{int(richness_max):,}".replace(",", "."))
+            st.metric("Riqueza maxima", f"{int(richness_max):,}".replace(",", "."))
     with c3:
         if not np.isnan(h_media):
-            st.metric("Shannon médio", f"{h_media:.3f}")
+            st.metric("Shannon medio", f"{h_media:.3f}")
     with c4:
         if not np.isnan(evenness_media):
-            st.metric("Equitabilidade média", f"{evenness_media:.3f}")
+            st.metric("Equitabilidade media", f"{evenness_media:.3f}")
 
     if "year" not in df_temp.columns or "month" not in df_temp.columns:
         return
@@ -75,12 +75,12 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
     df_temp = df_temp.dropna(subset=["date"]).sort_values("date")
 
     metrica_map = {
-        "Riqueza (nº de espécies)": ("richness", "Riqueza (espécies)"),
+        "Riqueza (numero de especies)": ("richness", "Riqueza (especies)"),
         "Diversidade (Shannon)": ("H_shannon", "H (Shannon)"),
         "Equitabilidade": ("evenness", "Equitabilidade"),
     }
     metrica_escolhida = st.selectbox(
-        "Métrica para série temporal",
+        "Metrica para serie temporal",
         options=list(metrica_map.keys()),
         index=0,
     )
@@ -89,7 +89,7 @@ def render_temporal_analysis(df_total: pd.DataFrame, diversidade_tempo: pd.DataF
     if col_y not in df_temp.columns:
         return
 
-    st.subheader(f"Série temporal — {cidade_focal} / {estado_focal} ({country_focal})")
+    st.subheader(f"Serie temporal - {cidade_focal} / {estado_focal} ({country_focal})")
 
     chart = (
         alt.Chart(df_temp)

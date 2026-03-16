@@ -23,7 +23,7 @@ APP_PATHS = get_app_paths()
 
 def set_bg_image(image_path: Path, overlay_alpha: float = 0.70) -> None:
     if not image_path.exists():
-        st.warning(f"Imagem de fundo não encontrada: {image_path}")
+        st.warning(f"Imagem de fundo nao encontrada: {image_path}")
         return
 
     b64 = base64.b64encode(image_path.read_bytes()).decode()
@@ -32,52 +32,68 @@ def set_bg_image(image_path: Path, overlay_alpha: float = 0.70) -> None:
     st.markdown(
         f"""
         <style>
-        html, body {{
-            background: transparent !important;
-            min-height: 100%;
+        html {{
+            font-size: 16px !important;
         }}
 
-        .stApp,
-        [data-testid="stAppViewContainer"],
-        [data-testid="stAppViewContainer"] > .main,
-        [data-testid="stMain"],
-        section.main {{
+        html, body, .stApp {{
+            min-height: 100%;
+            background: transparent !important;
+        }}
+
+        body::before {{
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
             background-image:
               linear-gradient(rgba(0,0,0,{overlay_alpha}), rgba(0,0,0,{overlay_alpha})),
               url("data:{mime_type};base64,{b64}");
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
             background-repeat: no-repeat;
-            background-color: transparent !important;
+            background-attachment: fixed;
+            pointer-events: none;
         }}
 
         .stApp,
         [data-testid="stAppViewContainer"],
-        [data-testid="stAppViewContainer"] > .main,
         [data-testid="stMain"],
-        section.main {{
-            min-height: 100vh;
+        [data-testid="stMainBlockContainer"],
+        section.main,
+        section.main > div,
+        .block-container {{
+            background: transparent !important;
+        }}
+
+        [data-testid="stAppViewContainer"] {{
+            position: relative;
+            isolation: isolate;
+        }}
+
+        [data-testid="stAppViewContainer"] > .main,
+        [data-testid="stAppViewContainer"] > .main > div {{
+            background: transparent !important;
         }}
 
         [data-testid="stHeader"] {{
-            background: rgba(0,0,0,0);
+            background: transparent !important;
         }}
 
         [data-testid="stToolbar"] {{
-            background: rgba(0,0,0,0);
+            background: transparent !important;
         }}
 
         [data-testid="stSidebar"] > div:first-child {{
-            background: rgba(0,0,0,0.55);
+            background: rgba(0,0,0,0.35);
         }}
 
         .block-container,
         [data-testid="stMainBlockContainer"] {{
             max-width: none !important;
-            width: min(96rem, calc(100vw - 3rem)) !important;
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
+            width: min(1536px, calc(100vw - 48px)) !important;
+            padding-left: 24px !important;
+            padding-right: 24px !important;
         }}
         </style>
         """,
@@ -86,15 +102,15 @@ def set_bg_image(image_path: Path, overlay_alpha: float = 0.70) -> None:
 
 
 st.set_page_config(
-    page_title="Biodiversidade de aves — análise geoespacial (eBird)",
+    page_title="Biodiversidade de aves - analise geoespacial (eBird)",
     page_icon=str(APP_PATHS.icon_path),
     layout="wide",
 )
-set_bg_image(APP_PATHS.background_path, overlay_alpha=0.70)
+set_bg_image(APP_PATHS.background_path, overlay_alpha=0.35)
 
 
 def render_city_analysis() -> None:
-    st.header("Análise ecológica e de similaridade por cidade")
+    st.header("Analise ecologica e de similaridade por cidade")
 
     diversidade_total = load_diversidade_cidade_total()
     diversidade_tempo = load_diversidade_cidade_tempo()
@@ -107,12 +123,12 @@ def render_city_analysis() -> None:
 
     paises = sorted(diversidade_total["countryCode"].dropna().unique())
     if not paises:
-        st.error("Não há países em diversidade_cidade_total.")
+        st.error("Nao ha paises em diversidade_cidade_total.")
         return
 
     default_paises = ["BR"] if "BR" in paises else [paises[0]]
     tab_sim, tab_eco, tab_temp = st.tabs(
-        ["Análise de similaridade entre cidades", "Análise ecológica", "Análise temporal"]
+        ["Analise de similaridade entre cidades", "Analise ecologica", "Analise temporal"]
     )
 
     with tab_sim:
@@ -125,16 +141,16 @@ def render_city_analysis() -> None:
 
     with tab_temp:
         if df_total is None:
-            st.warning("Selecione países com dados na aba ecológica para ver a série temporal.")
+            st.warning("Selecione paises com dados na aba ecologica para ver a serie temporal.")
         else:
             render_temporal_analysis(df_total, diversidade_tempo)
 
 
 def main() -> None:
-    st.title("Biodiversidade de aves — análise geoespacial (eBird)")
+    st.title("Biodiversidade de aves - analise geoespacial (eBird)")
     st.markdown(
         """
-Painel para análise espacial e comparativa de registros do eBird: mapas por unidade administrativa, diversidade por cidade e similaridade (Jensen-Shannon/Jaccard).
+Painel para analise espacial e comparativa de registros do eBird: mapas por unidade administrativa, diversidade por cidade e similaridade (Jensen-Shannon/Jaccard).
 """
     )
 

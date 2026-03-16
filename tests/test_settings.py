@@ -14,3 +14,12 @@ def test_paths_resolve():
     assert paths.project_root.name == "ebird-platform"
     assert paths.assets_dir.exists()
     assert paths.icon_path.exists()
+
+
+def test_paths_prefer_env_data_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("EBIRD_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("EBIRD_LEGACY_REPO_DIR", raising=False)
+
+    paths = get_app_paths()
+
+    assert paths.data_dir == tmp_path
